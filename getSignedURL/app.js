@@ -22,6 +22,11 @@ const s3 = new AWS.S3()
 // Change this value to adjust the signed URL's expiration
 const URL_EXPIRATION_SECONDS = 300
 
+const decode = function(str) {
+			return str.replace(/&#(\d+);/g, function(match, dec) {
+				return String.fromCharCode(dec);
+			})}
+
 // Main Lambda entry point
 exports.handler = async (event) => {
   return await getUploadURL(event)
@@ -29,7 +34,8 @@ exports.handler = async (event) => {
 
 const getUploadURL = async function(event) {
   const randomID = parseInt(Math.random() * 10000000)
-  const Key = `${randomID}.jpg`
+  const name = decodeURIComponent(event.queryStringParameters['name'])
+  const Key = `${name}-${randomID}.jpg`
 
   // Get signed URL from S3
   const s3Params = {
@@ -44,8 +50,8 @@ const getUploadURL = async function(event) {
     // ACL: 'public-read'
   }
 
-  console.log('Params: ', s3Params)
   const uploadURL = await s3.getSignedUrlPromise('putObject', s3Params)
+  console.log(Key)
 
   return JSON.stringify({
     uploadURL: uploadURL,
