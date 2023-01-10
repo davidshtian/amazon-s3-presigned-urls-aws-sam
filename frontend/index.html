@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+  <meta charset="utf-8">
   <head>
     <title>Upload file to S3</title>
     <script src="https://unpkg.com/vue@1.0.28/dist/vue.js"></script>
@@ -7,11 +8,13 @@
   </head>
   <body>
     <div id="app">
-      <h1>S3 Uploader Test</h1>
+      <h1>Amazon Simple Image Uploader</h1>
   
       <div v-if="!image">
-        <h2>Select an image</h2>
-        <input type="file" @change="onFileChange" accept="image/jpeg">
+        <h2>Type Your Name!</h2>
+        <input type="text" id="name" v-model="name" @input="handleInput">
+        <h2>And Select an Image~</h2>
+        <input type="file" @change="onFileChange" accept="image/*">
       </div>
       <div v-else>
         <img :src="image" />
@@ -22,7 +25,7 @@
     </div>
   
     <script>
-      const MAX_IMAGE_SIZE = 1000000
+      const MAX_IMAGE_SIZE = 100000000
 
       /* ENTER YOUR ENDPOINT HERE */
 
@@ -31,10 +34,15 @@
       new Vue({
         el: "#app",
         data: {
+          name: '',
           image: '',
           uploadURL: ''
         },
         methods: {
+          handleInput(e) {
+            console.log(e.target.value)
+            this.name = e.target.value
+          },
           onFileChange (e) {
             let files = e.target.files || e.dataTransfer.files
             if (!files.length) return
@@ -45,9 +53,6 @@
             let reader = new FileReader()
             reader.onload = (e) => {
               console.log('length: ', e.target.result.includes('data:image/jpeg'))
-              if (!e.target.result.includes('data:image/jpeg')) {
-                return alert('Wrong file type - JPG only.')
-              }
               if (e.target.result.length > MAX_IMAGE_SIZE) {
                 return alert('Image is loo large.')
               }
@@ -64,7 +69,7 @@
             // Get the presigned URL
             const response = await axios({
               method: 'GET',
-              url: API_ENDPOINT
+              url: API_ENDPOINT + "?name=" + this.name.toString()
             })
             console.log('Response: ', response)
             console.log('Uploading: ', this.image)
